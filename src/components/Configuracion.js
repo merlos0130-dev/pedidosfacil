@@ -50,7 +50,7 @@ export default function Configuracion({ negocio, setNegocio, session, onCerrarSe
           <div style={{ background:'#F0FDF4', borderRadius:10, padding:'1rem' }}>
             <div style={{ fontSize:13, fontWeight:600, color:'#15803D', marginBottom:6 }}>🔗 Link para tus clientes:</div>
             <div style={{ fontSize:12, color:'#166534', wordBreak:'break-all', fontFamily:'monospace', userSelect:'all' }}>
-              http://localhost:3001?negocio={negocio?.id}
+              https://pedidosfacil-clientes-ik7spiizb-merlos1.vercel.app?negocio={negocio?.id}
             </div>
           </div>
         </div>
