@@ -28,6 +28,10 @@ function tocarCampana() {
   } catch(e) {}
 }
 
+function generarCodigo() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -107,6 +111,17 @@ export default function App() {
     await supabase.from('pedidos').update({ estado: nuevoEstado }).eq('id', id);
   };
 
+  const aceptarPedido = async (id) => {
+    const codigo = generarCodigo();
+    setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: 'preparacion', codigo_seguimiento: codigo } : p));
+    await supabase.from('pedidos').update({ estado: 'preparacion', codigo_seguimiento: codigo }).eq('id', id);
+  };
+
+  const rechazarPedido = async (id, motivo) => {
+    setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: 'rechazado', motivo_rechazo: motivo } : p));
+    await supabase.from('pedidos').update({ estado: 'rechazado', motivo_rechazo: motivo }).eq('id', id);
+  };
+
   const agregarProducto = async (prod) => {
     const { data } = await supabase.from('productos').insert({ ...prod, negocio_id: negocio.id }).select().single();
     if (data) setProductos(prev => [...prev, data]);
@@ -138,7 +153,7 @@ export default function App() {
       <Sidebar pagina={pagina} setPagina={setPagina} pedidosNuevos={pedidosNuevos} negocio={negocio} onCerrarSesion={cerrarSesion} />
       <main style={{ flex:1, overflowY:'auto', background:'#F1F5F9' }}>
         {pagina==='dashboard' && <Dashboard pedidos={pedidos} productos={productos} setPagina={setPagina} negocio={negocio} />}
-        {pagina==='pedidos'   && <Pedidos pedidos={pedidos} onCambiarEstado={cambiarEstado} />}
+        {pagina==='pedidos'   && <Pedidos pedidos={pedidos} onCambiarEstado={cambiarEstado} onAceptar={aceptarPedido} onRechazar={rechazarPedido} />}
         {pagina==='productos' && <Productos productos={productos} onAgregarProducto={agregarProducto} onToggleProducto={toggleProducto} onEliminarProducto={eliminarProducto} />}
         {pagina==='clientes'  && <Clientes clientes={clientes} />}
         {pagina==='cupones'   && <Cupones negocio={negocio} />}
