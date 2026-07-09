@@ -6,9 +6,10 @@ const estadoConfig = {
   preparacion:{ label:'En preparación', color:'#3B82F6', bg:'#DBEAFE', siguiente:'listo'       },
   listo:      { label:'Listo',          color:'#10B981', bg:'#D1FAE5', siguiente:'entregado'   },
   entregado:  { label:'Entregado',      color:'#6B7280', bg:'#F3F4F6', siguiente:null          },
+  rechazado:  { label:'Rechazado',      color:'#EF4444', bg:'#FEE2E2', siguiente:null          },
 };
 
-export default function Pedidos({ pedidos, onCambiarEstado }) {
+export default function Pedidos({ pedidos, onCambiarEstado, onAceptar, onRechazar }) {
   const [filtro, setFiltro] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   const [seleccionado, setSeleccionado] = useState(null);
@@ -25,12 +26,19 @@ export default function Pedidos({ pedidos, onCambiarEstado }) {
     { key:'preparacion',label:'En preparación' },
     { key:'listo',      label:'Listos' },
     { key:'entregado',  label:'Entregados' },
+    { key:'rechazado',  label:'Rechazados' },
   ];
 
   const getProductosTexto = (p) => {
     if (!p.productos) return '-';
     if (Array.isArray(p.productos)) return p.productos.map(x=>x.nombre).join(', ');
     try { return JSON.parse(p.productos).map(x=>x.nombre).join(', '); } catch(e) { return '-'; }
+  };
+
+  const manejarRechazo = (id) => {
+    const motivo = window.prompt('¿Motivo del rechazo? (se lo mostraremos al cliente)');
+    if (motivo === null) return;
+    onRechazar(id, motivo.trim() || 'No especificado');
   };
 
   return (
@@ -86,17 +94,32 @@ export default function Pedidos({ pedidos, onCambiarEstado }) {
                     <td style={{ padding:'12px 14px', fontSize:13, fontWeight:600 }}>Bs. {Number(p.total||0).toFixed(0)}</td>
                     <td style={{ padding:'12px 14px' }}>
                       <span style={{ background:cfg.bg, color:cfg.color, fontSize:12, padding:'4px 10px', borderRadius:99, fontWeight:500 }}>{cfg.label}</span>
+                      {p.estado === 'rechazado' && p.motivo_rechazo && (
+                        <div style={{ fontSize:11, color:'#94A3B8', marginTop:4, maxWidth:160 }}>Motivo: {p.motivo_rechazo}</div>
+                      )}
                     </td>
                     <td style={{ padding:'12px 14px', fontSize:12, color:'#94A3B8' }}>
                       {new Date(p.created_at).toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit'})}
                     </td>
                     <td style={{ padding:'12px 14px' }}>
-                      <div style={{ display:'flex', gap:6 }}>
+                      <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                         <button onClick={()=>setSeleccionado(p)}
                           style={{ padding:'5px 10px', borderRadius:6, border:'1px solid #E2E8F0', background:'transparent', cursor:'pointer', fontSize:12 }}>
                           👁 Ver
                         </button>
-                        {cfg.siguiente && (
+
+                        {p.estado === 'nuevo' ? (
+                          <>
+                            <button onClick={()=>onAceptar(p.id)}
+                              style={{ padding:'5px 10px', borderRadius:6, border:'none', background:'#10B981', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:600 }}>
+                              ✅ Aceptar
+                            </button>
+                            <button onClick={()=>manejarRechazo(p.id)}
+                              style={{ padding:'5px 10px', borderRadius:6, border:'none', background:'#EF4444', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:600 }}>
+                              ❌ Rechazar
+                            </button>
+                          </>
+                        ) : cfg.siguiente && (
                           <button onClick={()=>onCambiarEstado(p.id, cfg.siguiente)}
                             style={{ padding:'5px 10px', borderRadius:6, border:'none', background:'#2563EB', color:'#fff', cursor:'pointer', fontSize:12 }}>
                             ▶ Avanzar
@@ -114,7 +137,7 @@ export default function Pedidos({ pedidos, onCambiarEstado }) {
           )}
         </div>
       )}
-      <ModalPedido pedido={seleccionado} onClose={()=>setSeleccionado(null)} onCambiarEstado={onCambiarEstado} />
+      <ModalPedido pedido={seleccionado} onClose={()=>setSeleccionado(null)} onCambiarEstado={onCambiarEstado} onAceptar={onAceptar} onRechazar={onRechazar} />
     </div>
   );
 }
