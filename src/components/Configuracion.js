@@ -39,7 +39,7 @@ export default function Configuracion({ negocio, setNegocio, session, onCerrarSe
     setGuardando(false);
   };
 
-  const linkClientes = `https://pedidosfacil-clientes-ik7spiizb-merlos1.vercel.app?negocio=${negocio?.id}`;
+  const linkClientes = `https://pedidosfacil-clientes-iota.vercel.app?negocio=${negocio?.id}`;
 
   return (
     <div style={{ padding:'1.5rem' }}>
